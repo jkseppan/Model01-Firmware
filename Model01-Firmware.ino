@@ -86,7 +86,9 @@
   */
 
 enum { MACRO_VERSION_INFO,
-       MACRO_ANY
+       MACRO_ANY,
+       MACRO_A_UMLAUT,
+       MACRO_O_UMLAUT
      };
 
 
@@ -149,10 +151,10 @@ enum { PRIMARY, NUMPAD, FUNCTION }; // layers
   *
   */
 
-#define PRIMARY_KEYMAP_QWERTY
+// #define PRIMARY_KEYMAP_QWERTY
 // #define PRIMARY_KEYMAP_COLEMAK
 // #define PRIMARY_KEYMAP_DVORAK
-// #define PRIMARY_KEYMAP_CUSTOM
+#define PRIMARY_KEYMAP_CUSTOM
 
 
 
@@ -254,7 +256,7 @@ KEYMAPS(
    ___),
 
   [FUNCTION] =  KEYMAP_STACKED
-  (___,      Key_F1,           Key_F2,      Key_F3,     Key_F4,        Key_F5,           Key_CapsLock,
+  (___,      Key_F1,           Key_F2,      Key_F3,     Key_F4,        Key_F5,           Key_F12,
    Key_Tab,  ___,              Key_mouseUp, ___,        Key_mouseBtnR, Key_mouseWarpEnd, Key_mouseWarpNE,
    Key_Home, Key_mouseL,       Key_mouseDn, Key_mouseR, Key_mouseBtnL, Key_mouseWarpNW,
    Key_End,  Key_PrintScreen,  Key_Insert,  ___,        Key_mouseBtnM, Key_mouseWarpSW,  Key_mouseWarpSE,
@@ -262,8 +264,8 @@ KEYMAPS(
    ___,
 
    Consumer_ScanPreviousTrack, Key_F6,                 Key_F7,                   Key_F8,                   Key_F9,          Key_F10,          Key_F11,
-   Consumer_PlaySlashPause,    Consumer_ScanNextTrack, Key_LeftCurlyBracket,     Key_RightCurlyBracket,    Key_LeftBracket, Key_RightBracket, Key_F12,
-                               Key_LeftArrow,          Key_DownArrow,            Key_UpArrow,              Key_RightArrow,  ___,              ___,
+   Consumer_PlaySlashPause,    Consumer_ScanNextTrack, Key_LeftCurlyBracket,     Key_RightCurlyBracket,    Key_LeftBracket, Key_RightBracket, RALT(Key_A),
+                               Key_LeftArrow,          Key_DownArrow,            Key_UpArrow,              Key_RightArrow,  M(MACRO_O_UMLAUT),M(MACRO_A_UMLAUT),
    Key_PcApplication,          Consumer_Mute,          Consumer_VolumeDecrement, Consumer_VolumeIncrement, ___,             Key_Backslash,    Key_Pipe,
    ___, ___, Key_Enter, ___,
    ___)
@@ -301,6 +303,32 @@ static void anyKeyMacro(uint8_t keyState) {
     kaleidoscope::hid::pressKey(lastKey);
 }
 
+static const macro_t* oUmlautMacro(uint8_t keyState) {
+  const bool leftShift = kaleidoscope::hid::wasModifierKeyActive(Key_LeftShift),
+    rightShift = kaleidoscope::hid::wasModifierKeyActive(Key_RightShift);
+  if (leftShift && rightShift)
+    return MACRODOWN(U(LeftShift), U(RightShift), Tr(RALT(Key_U)), D(RightShift), D(LeftShift), Tr(Key_O));
+  else if (leftShift)
+    return MACRODOWN(U(LeftShift), Tr(RALT(Key_U)), D(LeftShift), Tr(Key_O));
+  else if (rightShift)
+    return MACRODOWN(U(RightShift), Tr(RALT(Key_U)), D(RightShift), Tr(Key_O));
+  else
+    return MACRODOWN(Tr(RALT(Key_U)), Tr(Key_O));
+}
+
+static const macro_t* aUmlautMacro(uint8_t keyState) {
+  const bool leftShift = kaleidoscope::hid::wasModifierKeyActive(Key_LeftShift),
+    rightShift = kaleidoscope::hid::wasModifierKeyActive(Key_RightShift);
+  if (leftShift && rightShift)
+    return MACRODOWN(U(LeftShift), U(RightShift), Tr(RALT(Key_U)), D(RightShift), D(LeftShift), Tr(Key_A));
+  else if (leftShift)
+    return MACRODOWN(U(LeftShift), Tr(RALT(Key_U)), D(LeftShift), Tr(Key_A));
+  else if (rightShift)
+    return MACRODOWN(U(RightShift), Tr(RALT(Key_U)), D(RightShift), Tr(Key_A));
+  else
+    return MACRODOWN(Tr(RALT(Key_U)), Tr(Key_A));
+}
+
 
 /** macroAction dispatches keymap events that are tied to a macro
     to that macro. It takes two uint8_t parameters.
@@ -323,6 +351,14 @@ const macro_t *macroAction(uint8_t macroIndex, uint8_t keyState) {
 
   case MACRO_ANY:
     anyKeyMacro(keyState);
+    break;
+
+  case MACRO_O_UMLAUT:
+    return oUmlautMacro(keyState);
+    break;
+
+  case MACRO_A_UMLAUT:
+    return aUmlautMacro(keyState);
     break;
   }
   return MACRO_NONE;
